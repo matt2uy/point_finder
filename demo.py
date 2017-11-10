@@ -1,4 +1,7 @@
 # next: loop through a video?
+# after: should we track colour change in rgb?
+# or (convert to greyscale first)?
+# or (convert to the opposite colour of the tennnis court first)?
 
 # see how long it takes to process the image
 import time
@@ -22,15 +25,24 @@ matrix =  cv2.imread(image)
 height, width, bpp = np.shape(matrix)
  
 # traverse every pixel in the image. 
-#(maybe iterate through every (12?) pixels to increase speed?)
+#(maybe iterate through every (12?) pixels to increase speed?) -> scale x,y?
 num_of_pixels = 0
-for pixel_y in range(0, height):
-    for pixel_x in range(0, width):
+total_colour_value = 0
+for pixel_y in range(0, height, 12):
+    for pixel_x in range(0, width, 12):
         num_of_pixels += 1
-        #print (matrix[pixel_y][pixel_x])
+        # save the 'total' average pixel value
+        total_colour_value += matrix[pixel_y][pixel_x][0] # indexes 0,1,2 = 'rgb'?
+        total_colour_value += matrix[pixel_y][pixel_x][1] 
+        total_colour_value += matrix[pixel_y][pixel_x][2]
 
 print ("there are", num_of_pixels, "pixels in this image")
-print (matrix[200][100])
+print ("total_colour_value:", total_colour_value)
+
+# div by 12 because we only check every 12th pixel
+# and div by 3 because there are 3 values for rgb
+average_pixel_value = total_colour_value / ((height/12)*(width/12)) / 3
+print ("average_pixel_value:", average_pixel_value)
 
 
 
