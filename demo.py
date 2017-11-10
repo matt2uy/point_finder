@@ -21,9 +21,8 @@ Resources:
 '''
 
 
-# image/video files
-image_path = "ball.jpg"
-video_path = "test_match.mp4"
+# video files
+video_path = "test_point.mp4" # longform video would be: "test_match.mp4"
 
 # see how long it takes to process the image
 import time
