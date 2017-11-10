@@ -1,29 +1,43 @@
-# import image and convert it to greyscale
-'''
+# next: loop through a video?
+
+# see how long it takes to process the image
+import time
+start_time = time.time()
+
+
+###
+
+
 import cv2
-
-image = cv2.imread("clouds.jpg")
-gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-cv2.imshow("Over the Clouds", image)
-cv2.imshow("Over the Clouds - gray", gray_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-'''
-
-# play video from a file
 import numpy as np
-import cv2
+ 
 
-cap = cv2.VideoCapture('test_match.mp4')
+# image/video files
+image = "ball.jpg"
 
-while(cap.isOpened()):
-    ret, frame = cap.read()
+# save image as a "matrix"
+matrix =  cv2.imread(image)
+ 
+# get image properties
+height, width, bpp = np.shape(matrix)
+ 
+# traverse every pixel in the image. 
+#(maybe iterate through every (12?) pixels to increase speed?)
+num_of_pixels = 0
+for pixel_y in range(0, height):
+    for pixel_x in range(0, width):
+        num_of_pixels += 1
+        #print (matrix[pixel_y][pixel_x])
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+print ("there are", num_of_pixels, "pixels in this image")
+print (matrix[200][100])
 
-    cv2.imshow('frame',gray)
-    if cv2.waitKey(25) & 0xFF == ord('q'): # modify the parameter x in cv2.waitkey(x) to modify (playback speed?)
-        break
 
-cap.release()
-cv2.destroyAllWindows()
+
+
+
+
+
+
+
+print("--- %s seconds ---" % (time.time() - start_time))

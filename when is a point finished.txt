@@ -1,0 +1,22 @@
+1. Use the "amount of motion"
+- before serve: the least?
+- point ends: 'deceleration'?
+
+2. net cord?
+- but players will interfere? 
+- model the tennis court?
+
+3. Sound
+- interference?
+- faster?
+- define a tennis ball bounce/racket sound
+
+4. Ball tracking
+- check for 'smooth path'
+- if there is no smooth path for more than 2 seconds, 
+... then the point is finished?
+
+	- opencv houghcircles python
+	- kalman filter to predict movement
+	- trace path?
+	- how to judge if a path is 'smooth'?
