@@ -69,6 +69,20 @@ def equalize_list_length(value, length):
 		one_value_list.append(value)
 	return one_value_list
 
+def find_points_above_threshold(list_of_values, threshold):
+	''' Return a list of list of values, with elements of 
+	index [x][1] being the "timestamp" ("x-axis", unit agnostic)
+	and the index [x][0] being the "motion_value" ("y-axis")
+
+	'''
+	values_above_threshold = []
+
+	for point_in_time in range(len(list_of_values)):
+		if list_of_values[point_in_time] > threshold:
+			values_above_threshold.append(point_in_time, [list_of_values[point_in_time]])
+
+	return values_above_threshold
+
 def plot_graph(list_of_plots):
 	""" Plot a graph using matplotlib, given a list_of_plots, which is a list
 	of list of y values to be plotted. Each x-value in each list is separated 
@@ -282,12 +296,8 @@ acceleration_average_list = equalize_list_length(acceleration_average, len(accel
 
 point_start = {}
 
+print (find_points_above_threshold(acceleration_list, acceleration_average))
 
-# go through all seconds
-for second in range(len(acceleration_list)):
-	if acceleration_list[second] > acceleration_average:
-		print (second, "secs:", acceleration_list[second])
-		#point_start[second] = acceleration_list[second]
 
 '''
 # print out finished product
