@@ -46,6 +46,28 @@ def trim_video(start_frame, end_frame, source_file_path, new_file_path):
 	ffmpeg_extract_subclip(new_file_path, start_frame, end_frame, targetname=source_file_path)
 	print("done")
  
+ # note: is specifying the parameter type for only one function "inconsistent"?
+def get_modified_mean(list_of_values: int, mean_multiplier: float):
+	''' Return the mean of the list_of_values, multiplied by the mean_multiplier.
+
+	>>> get_modified_mean(displacement_list, 1.5)
+	Returns the mean*1.5
+	'''
+	total_value = 0
+	for value in list_of_values:
+		total_value += value
+
+	return (total_value/len(list_of_values))*mean_multiplier
+
+def equalize_list_length(value, length):
+	''' Duplicate the value until it is the same length as the
+	raw list of values it is being compared to. For (visual) plotting
+	purposes only.
+	'''
+	one_value_list = []
+	for i in range(length):
+		one_value_list.append(value)
+	return one_value_list
 
 def plot_graph(list_of_plots):
 	""" Plot a graph using matplotlib, given a list_of_plots, which is a list
@@ -242,25 +264,20 @@ plt.plot(median_list)
 plt.plot(velocity_list)
 plt.show()'''
 
-# Calculate averages
-
+# Convert motion data into a plotter-digestible format
 # displacement
-displacement_average = (displacement_average/len(displacement_list))*1.5
-displacement_average_list = []
-for i in displacement_list:
-	displacement_average_list.append(displacement_average)
+displacement_average = get_modified_mean(displacement_list, 1.5)
+displacement_average_list = equalize_list_length(displacement_average, len(displacement_list))
 
 # velocity
-velocity_average = (velocity_average/len(velocity_list))*1.5
-velocity_average_list = []
-for i in velocity_list:
-	velocity_average_list.append(velocity_average)
+velocity_average = get_modified_mean(velocity_list, 1.5)
+velocity_average_list = equalize_list_length(velocity_average, len(velocity_list))
 
 # acceleration
-acceleration_average = (acceleration_average/len(acceleration_list))*1.8
-acceleration_average_list = []
-for i in acceleration_list:
-	acceleration_average_list.append(acceleration_average)
+acceleration_average = get_modified_mean(acceleration_list, 1.8)
+acceleration_average_list = equalize_list_length(acceleration_average, len(acceleration_list))
+
+
 
 
 point_start = {}
@@ -280,6 +297,6 @@ for second in point_start:
 
 plot_graph([acceleration_average_list, acceleration_list])
 
-plot_graph([box_colour_value_list]) # add the median after?
+plot_graph([box_colour_value_list]) # add the mean after?
 
 print (box_colour_value_list)
