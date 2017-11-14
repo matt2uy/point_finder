@@ -1,6 +1,6 @@
 # 0. get delta v/a/derivative
 # 1. why is it so slow? optimize (remove redundant stuff when traversing through each frame) -> refactor (make it neat asf in 30 mins)
-# 2. clean up code -> remove cruft -> variable names -> refactor (modularize)
+# 2. clean up code -> remove cruft -> variable names -> refactor (modularize) -> add a '__main__'?
 # after: should we track colour change in rgb?
 # or (convert to greyscale first)?
 # or (convert to the opposite colour of the tennnis court first)?
@@ -27,44 +27,38 @@ Resources:
 #video_path = "test_point.mp4" # short
 video_path = "full_match.mp4" 
 
-'''
-# install ffmpeg? 
-# ... comment from 'zulko': https://github.com/Zulko/moviepy/issues/493
-import imageio
-imageio.plugins.ffmpeg.download()
-from moviepy.editor import *'''
-
-def install_ffmpeg():
-''' note: Not sure if importing within a function will work...
-	Install ffmpeg if has not already been.
-	Helpful comment: https://github.com/Zulko/moviepy/issues/493
-'''
-	import imageio
-	imageio.plugins.ffmpeg.download()
-	from moviepy.editor import *
-
-def trim_video(start_frame, end_frame, source_file_path, new_file_path)
-'''
-	Trim video using ffmpeg.
-	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
-	note: move import commands to the top of the script?
-
-	Sample, where video_path = "full_match.mp4":
-	>>> trim_video(1000, 1100, video_path, "source_match.mp4")
-
-'''
-
-	from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-
-	print("trimming video")
-	ffmpeg_extract_subclip(new_file_path, start_frame, end_frame, targetname=source_file_path)
-	print("done")
-
 
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+
+
+def trim_video(start_frame, end_frame, source_file_path, new_file_path):
+	''' Trim video using ffmpeg.
+	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
+
+	Sample, where video_path = "full_match.mp4":
+	>>> trim_video(1000, 1100, video_path, "source_match.mp4")
+	'''	
+
+	print("trimming video")
+	ffmpeg_extract_subclip(new_file_path, start_frame, end_frame, targetname=source_file_path)
+	print("done")
  
+
+def plot_graph(list_of_plots):
+	""" Plot a graph using matplotlib, given a list_of_plots, which is a list
+	of list of y values to be plotted. Each x-value in each list is separated 
+	by a y-value of 1.	
+	
+	>>> plot_graph([acceleration_average_list, acceleration_list])
+	# plots a graph of the acceleration values and their mean.
+	"""
+
+	for plot in list_of_plots:
+		plt.plot(plot)
+	plt.show() 
 ############################################
 
 
@@ -80,9 +74,6 @@ if (cap.isOpened() == False):
 num_of_frames = 0
 historical_colour_value = []
  
-
-# get frame properties
-#height, width, bpp = np.shape(frame)
 # get vcap properties
 width = int(cap.get(3))#cv2.CV_CAP_PROP_FRAME_WIDTH) # float
 height = int(cap.get(4))#cv2.CV_CAP_PROP_FRAME_HEIGHT) # float
@@ -150,7 +141,7 @@ while(cap.isOpened()):
 
 
 		# Display the resulting frame
-		cv2.imshow('Frame', frame)
+		#cv2.imshow('Frame', frame)
 
 	 
 		# Press Q on keyboard to exit
@@ -272,15 +263,6 @@ for i in acceleration_list:
 	acceleration_average_list.append(acceleration_average)
 
 
-
-
-print (len(historical_colour_value))
-	
-
-print (len(displacement_list))
-print (len(velocity_list))
-print (len(acceleration_list))
-
 point_start = {}
 
 
@@ -296,12 +278,8 @@ print (point_start)
 for second in point_start:
 	print (second, "secs:", point_start[second])'''
 
-plt.plot(acceleration_average_list)
-plt.plot(acceleration_list)
-plt.show()
+plot_graph([acceleration_average_list, acceleration_list])
 
-
-plt.plot(box_colour_value_list)
-plt.show()
+plot_graph([box_colour_value_list]) # add the median after?
 
 print (box_colour_value_list)
