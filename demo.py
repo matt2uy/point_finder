@@ -203,10 +203,11 @@ def get_derivative_of_list(list_of_values):
 	''' Note: the list of derivatives will be one element lower than the input list.
 	'''
 	derivative_list = []
-	
+	#derivative_list.append(0)
 	for i in range(len(list_of_values)):
 		derivative_list.append(abs(list_of_values[i]-list_of_values[i-1]))
-	
+	# ensure that the list index 'lines up' with the chronological timeline
+	derivative_list.pop(0)
 	return derivative_list
 
 def plot_graph(list_of_plots):
@@ -325,25 +326,15 @@ acceleration_lower_average = get_modified_mean(acceleration_list, 1.5)
 acceleration_lower_threshold_list = equalize_list_length(acceleration_lower_average, len(acceleration_list))
 
 
-
-
-# note: create a function for this later, or incoporate this to a pre-existing one
-# ensure that the list index 'lines up' with the chronological timeline
-displacement_list.pop(0)
-velocity_list.pop(0)
-velocity_list.pop(1)
-acceleration_list.pop(0)
-acceleration_list.pop(1)
-acceleration_list.pop(2)
-
-plot_graph([acceleration_lower_threshold_list, acceleration_average_list, acceleration_list])
+#plot_graph([acceleration_lower_threshold_list, acceleration_average_list, acceleration_list])
 
 #plot_graph([box_colour_value_list]) # add the mean after?
 
 #print (box_colour_value_list)
 
+#print(displacement_list[0])
 
-
+'''
 point_start = find_points_above_threshold(acceleration_list, acceleration_average, 30)
 
 # note: replace 30 wtih frames_per_second
@@ -360,7 +351,7 @@ for point_within_threshold in point_serving:
 	print(point_within_threshold)
 
 print (len(find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-100, 30)))
-
+'''
 
 '''
 # print out finished product
