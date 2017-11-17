@@ -171,7 +171,7 @@ def equalize_list_length(value, length):
 		one_value_list.append(value)
 	return one_value_list
 
-def find_points_above_threshold(list_of_values, threshold):
+def find_points_above_threshold(list_of_values, threshold, frames_per_second):
 	''' Return a list of list of values, with elements of 
 	index [x][1] being the "timestamp" ("x-axis", unit agnostic)
 	and the index [x][0] being the "motion_value" ("y-axis")
@@ -181,9 +181,23 @@ def find_points_above_threshold(list_of_values, threshold):
 
 	for point_in_time in range(len(list_of_values)):
 		if list_of_values[point_in_time] > threshold:
-			values_above_threshold.append([point_in_time, list_of_values[point_in_time]])
+			values_above_threshold.append([point_in_time/frames_per_second, list_of_values[point_in_time]])
 
 	return values_above_threshold
+
+def find_points_within_threshold(list_of_values, upper_bound, lower_bound, frames_per_second):
+	''' Return a list of list of values, with elements of 
+	index [x][1] being the "timestamp" ("x-axis", unit agnostic)
+	and the index [x][0] being the "motion_value" ("y-axis")
+
+	'''
+	values_within_threshold = []
+
+	for point_in_time in range(len(list_of_values)):
+		if list_of_values[point_in_time] < upper_bound and list_of_values[point_in_time] > lower_bound:
+			values_within_threshold.append([point_in_time/frames_per_second, list_of_values[point_in_time]])
+
+	return values_within_threshold
 
 def get_derivative_of_list(list_of_values):
 	''' Note: the list of derivatives will be one element lower than the input list.
@@ -294,29 +308,24 @@ velocity_list = get_derivative_of_list(displacement_list)
 acceleration_list = get_derivative_of_list(velocity_list)
 
 
-# Convert motion data into a plotter-digestible format
+# Convert motion average data into a plotter-digestible format
 # displacement
-displacement_average = get_modified_mean(displacement_list, 1.5)
+displacement_average = get_modified_mean(displacement_list, 1)
 displacement_average_list = equalize_list_length(displacement_average, len(displacement_list))
 
 # velocity
-velocity_average = get_modified_mean(velocity_list, 1.5)
+velocity_average = get_modified_mean(velocity_list, 1)
 velocity_average_list = equalize_list_length(velocity_average, len(velocity_list))
 
 # acceleration
 acceleration_average = get_modified_mean(acceleration_list, 5)
 acceleration_average_list = equalize_list_length(acceleration_average, len(acceleration_list))
 
+acceleration_lower_average = get_modified_mean(acceleration_list, 1.5)
+acceleration_lower_threshold_list = equalize_list_length(acceleration_lower_average, len(acceleration_list))
 
-point_start = {}
 
-#print (find_points_above_threshold(acceleration_list, acceleration_average))
 
-'''
-# print out finished product
-print (point_start)
-for second in point_start:
-	print (second, "secs:", point_start[second])'''
 
 # note: create a function for this later, or incoporate this to a pre-existing one
 # ensure that the list index 'lines up' with the chronological timeline
@@ -327,9 +336,34 @@ acceleration_list.pop(0)
 acceleration_list.pop(1)
 acceleration_list.pop(2)
 
-plot_graph([acceleration_average_list, acceleration_list])
+plot_graph([acceleration_lower_threshold_list, acceleration_average_list, acceleration_list])
 
 #plot_graph([box_colour_value_list]) # add the mean after?
 
 #print (box_colour_value_list)
 
+
+
+point_start = find_points_above_threshold(acceleration_list, acceleration_average, 30)
+
+# note: replace 30 wtih frames_per_second
+for point_above_threshold in point_start:
+	print(point_above_threshold)
+
+print (len(find_points_above_threshold(acceleration_list, acceleration_average, 30)))
+print ("- - - - - - - -- - - - -  ")
+
+point_serving = find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-100, 30)
+
+# note: replace 30 wtih frames_per_second
+for point_within_threshold in point_serving:
+	print(point_within_threshold)
+
+print (len(find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-100, 30)))
+
+
+'''
+# print out finished product
+print (point_start)
+for second in point_start:
+	print (second, "secs:", point_start[second])'''
