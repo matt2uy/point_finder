@@ -281,7 +281,7 @@ raw = [750459, 750587, 750930, 750447, 750659, 750754, 751064, 750984, 751504, 7
 # scale the values to the appropriate time frame, given the fps of the video.
 # note: how do you get the fps of a video file? from ffmpeg? or OpenCV?
 # note: replace 30 with frames_per_second, once capture_video is refactored properly
-for i in range(0, len(raw), 30): 
+for i in range(0, len(raw), 1): 
 	# maybe store in a dict instead.
 	#frames_per_second = 
 	#historical_colour_value[i/frames_per_second] = raw[i]
@@ -304,7 +304,7 @@ velocity_average = get_modified_mean(velocity_list, 1.5)
 velocity_average_list = equalize_list_length(velocity_average, len(velocity_list))
 
 # acceleration
-acceleration_average = get_modified_mean(acceleration_list, 1.8)
+acceleration_average = get_modified_mean(acceleration_list, 5)
 acceleration_average_list = equalize_list_length(acceleration_average, len(acceleration_list))
 
 
@@ -326,17 +326,6 @@ velocity_list.pop(1)
 acceleration_list.pop(0)
 acceleration_list.pop(1)
 acceleration_list.pop(2)
-
-print(displacement_list)
-print("")
-print(velocity_list)
-print("")
-print(acceleration_list)
-print("")
-
-print(len(displacement_list))
-print(len(velocity_list))
-print(len(acceleration_list))
 
 plot_graph([acceleration_average_list, acceleration_list])
 
