@@ -337,39 +337,75 @@ acceleration_lower_threshold_list = equalize_list_length(acceleration_lower_aver
 
 
 # note: replace 30 wtih frames_per_second
-point_start = find_points_above_threshold(acceleration_list, acceleration_average, 30)
+high_points = find_points_above_threshold(acceleration_list, acceleration_average, 30)
 
-# note: replace 30 wtih frames_per_second
-for point_above_threshold in point_start:
-	...#print(point_above_threshold)
+# delta is the range of y-values at which we are narrowing down our search.
+# Maybe make it represent an abs() value? ...
+# ... Currently it is not (see the function call below)
+delta = 100  
+low_points = find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-delta, 30)
 
-print ("Points above threshold:", len(find_points_above_threshold(acceleration_list, acceleration_average, 30)))
-print ("- - - - - - - - - - - - -  ")
-
-list_of_low_points = find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-100, 30)
-
-
-
-#print(len(points_that_are_close))
-#print (list_of_low_points[0][0])	
-
-print ("'Low' points:", len(list_of_low_points))
-print ("removing 'points in time' that are over 0.1 secs apart...")
-
-
+#remove 'points in time' that are 'singleton', or isolated instances of low 'motion' value.
 points_that_are_close = []
 previous_point = 0.0
 # 'closeness' of each frame (in secs). May be dependent on frames_per_second (1 sec/30 fps = 0.033).
-epsilon = (1/30) + 0.001 # added 0.001 because of? ... (maybe a rounding error? Dividing 1/30 over here does not result in repeating 3's?)
-for point_within_threshold in list_of_low_points:
-	if point_within_threshold[0] < previous_point+epsilon and point_within_threshold[0] > previous_point-epsilon: 
-		points_that_are_close.append(point_within_threshold[0])
-		print (point_within_threshold[0], "is within", epsilon, "of", previous_point, len(points_that_are_close))
+delta = (1/30) + 0.001 # added 0.001 because of? ... (maybe a rounding error? Dividing 1/30 over here does not result in repeating 3's?)
+for point_within_threshold in low_points:
+	if point_within_threshold[0] < previous_point+delta and point_within_threshold[0] > previous_point-delta: 
+		points_that_are_close.append([point_within_threshold[0], point_within_threshold[1]])
+		#print (point_within_threshold[0], "is within", delta, "of", previous_point, len(points_that_are_close))
 		
 
 	previous_point = point_within_threshold[0]
+low_points = points_that_are_close # reset -> maybe move the above code block into a function returning points_that_are_close
 
-print ("Updated 'low' points:", len(points_that_are_close))
+
+# compare the high and low points, and maybe group them -> 
+# -> thin the herd -> get a distinct set of serve attempts (call the list 'point_start')
+
+# note: replace 30 wtih frames_per_second
+'''for point in high_points:
+	print(point)
+
+for i in range(3):
+	print("")
+
+for point in low_points:
+	print(point)'''
+
+
+print ("Number of 'high points':", len(high_points))
+
+print ("Number of 'low' points:", len(low_points))
+
+high_low_delta = 1
+serve_attempts = []
+serve_attempt_delta = 5.0
+num_of_serve_attempts = 0
+
+for low_point in low_points:
+	for high_point in high_points:
+		if low_point[0] < high_point[0] + high_low_delta and low_point[0] > high_point[0] - high_low_delta: 
+	
+			# narrow down serve_attempts
+			serve_attempt_is_validated = True
+			# if they are within serve_attempt_delta seconds of each other
+			for serve_attempt in serve_attempts:
+				if low_point[0] < serve_attempt + serve_attempt_delta and low_point[0] > serve_attempt - serve_attempt_delta:
+					serve_attempt_is_validated = False
+				
+
+			if serve_attempt_is_validated:
+				#print (low_point[0])
+				serve_attempts.append(low_point[0])
+				num_of_serve_attempts += 1
+
+for serve_attempt in serve_attempts:
+	print(serve_attempt)
+print("serve attempts:", num_of_serve_attempts)
+
+point_start = []
+
 '''
 # print out finished product
 print (point_start)
