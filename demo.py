@@ -325,6 +325,7 @@ acceleration_average_list = equalize_list_length(acceleration_average, len(accel
 acceleration_lower_average = get_modified_mean(acceleration_list, 1.5)
 acceleration_lower_threshold_list = equalize_list_length(acceleration_lower_average, len(acceleration_list))
 
+# note (11/17/17 15:41): go tu tut on wed to (check?)
 
 #plot_graph([acceleration_lower_threshold_list, acceleration_average_list, acceleration_list])
 
@@ -334,25 +335,41 @@ acceleration_lower_threshold_list = equalize_list_length(acceleration_lower_aver
 
 #print(displacement_list[0])
 
-'''
+
+# note: replace 30 wtih frames_per_second
 point_start = find_points_above_threshold(acceleration_list, acceleration_average, 30)
 
 # note: replace 30 wtih frames_per_second
 for point_above_threshold in point_start:
-	print(point_above_threshold)
+	...#print(point_above_threshold)
 
-print (len(find_points_above_threshold(acceleration_list, acceleration_average, 30)))
-print ("- - - - - - - -- - - - -  ")
+print ("Points above threshold:", len(find_points_above_threshold(acceleration_list, acceleration_average, 30)))
+print ("- - - - - - - - - - - - -  ")
 
-point_serving = find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-100, 30)
+list_of_low_points = find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-100, 30)
 
-# note: replace 30 wtih frames_per_second
-for point_within_threshold in point_serving:
-	print(point_within_threshold)
 
-print (len(find_points_within_threshold(acceleration_list, acceleration_lower_average, acceleration_lower_average-100, 30)))
-'''
 
+#print(len(points_that_are_close))
+#print (list_of_low_points[0][0])	
+
+print ("'Low' points:", len(list_of_low_points))
+print ("removing 'points in time' that are over 0.1 secs apart...")
+
+
+points_that_are_close = []
+previous_point = 0.0
+# 'closeness' of each frame (in secs). May be dependent on frames_per_second (1 sec/30 fps = 0.033).
+epsilon = (1/30) + 0.001 # added 0.001 because of? ... (maybe a rounding error? Dividing 1/30 over here does not result in repeating 3's?)
+for point_within_threshold in list_of_low_points:
+	if point_within_threshold[0] < previous_point+epsilon and point_within_threshold[0] > previous_point-epsilon: 
+		points_that_are_close.append(point_within_threshold[0])
+		print (point_within_threshold[0], "is within", epsilon, "of", previous_point, len(points_that_are_close))
+		
+
+	previous_point = point_within_threshold[0]
+
+print ("Updated 'low' points:", len(points_that_are_close))
 '''
 # print out finished product
 print (point_start)
