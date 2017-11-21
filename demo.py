@@ -46,11 +46,18 @@ def trim_video(start_frame, end_frame, source_file_path, new_file_path):
 	>>> trim_video(1000, 1100, video_path, "source_match.mp4")
 	'''	
 
-	print("trimming video")
+	print("trimming", source_file_path, "from frame", start_frame, "to frame", end_frame, "and saving to", new_file_path)
 	ffmpeg_extract_subclip(new_file_path, start_frame, end_frame, targetname=source_file_path)
 	print("done")
  
  # note: is specifying the parameter type for only one function "inconsistent"?
+
+def cut_video_in_points_of_interest(point_timestamps):
+	'''
+	point_timestamps is in the form of: list[list[start_time, end_time]]
+	'''
+	...
+	# use trim_video?
 
 ##### Video Capture #####
 
@@ -59,7 +66,7 @@ def capture_video():
 	# Create a VideoCapture object and read from input file
 	# If the input is the camera, pass 0 instead of the video file name
 	cap = cv2.VideoCapture(video_path)
-	#fgbg = cv2.createBackgroundSubtractorMOG2()
+	fgbg = cv2.createBackgroundSubtractorMOG2()
 
 	# Check if camera opened successfully
 	if (cap.isOpened() == False): 
@@ -67,7 +74,8 @@ def capture_video():
 	 
 
 	historical_colour_value = []
-	historical_box_colour_value = []
+	historical_top_box_colour_value = []
+	historical_bottom_box_colour_value = []
 	 
 	# get video properties
 	width = int(cap.get(VIDEO_CAPTURE_WIDTH))
@@ -78,7 +86,7 @@ def capture_video():
 	while(cap.isOpened()):
 		# Capture frame-by-frame
 		ret, frame = cap.read()
-		#frame = fgbg.apply(frame) # background substraction
+		
 		#frame = cv2.blur(frame,(1,1))# gaussian blur
 
 		if ret == True:
@@ -108,6 +116,7 @@ def capture_video():
 			top = 0 + (height//3)
 			bottom = height'''
 
+			# looking at the entire scoreboard
 			left = 0#(width//10)
 			right = width#width - (width//10)
 			top = 0 #+ (height//3)
@@ -129,28 +138,52 @@ def capture_video():
 			
 			###############
 			# look at the scoreboard (so we can see when the point ends)
-			# note: remember to add the 'other square' later.
-			'''scoreboard_left = 148
+			frame = fgbg.apply(frame) # background substraction seems to clean up the scorebaord area.
+			scoreboard_left = 148
 			scoreboard_right = 167
 
+			# number on the first row of the scoreboard
 			scoreboard_top_1 = 370
 			scoreboard_bottom_1 = 390
+			# number on the second row of the scoreboard
 			scoreboard_top_2 = 398
 			scoreboard_bottom_2 = 418
 
-			total_box_colour_value = 0
+			total_top_box_colour_value = 0
 
+			##### look at the "top" box
+			# show where we are looking at:
+			#cv2.rectangle(frame,(scoreboard_left, scoreboard_top_1),(scoreboard_right, scoreboard_bottom_1),(0,255,0),1) # test: draw it on top of the video
+			# traverse every pixel in the scoreboard.
+			for pixel_y in range(scoreboard_left, scoreboard_right, 1):
+				for pixel_x in range(scoreboard_top_1, scoreboard_bottom_1, 1):
+					total_top_box_colour_value += frame[pixel_y][pixel_x]#[0] # indexes 0,1,2 = 'rgb'?
+					#total_top_box_colour_value += frame[pixel_y][pixel_x][1] 
+					#total_top_box_colour_value += frame[pixel_y][pixel_x][2]
+			
+			#print (total_top_box_colour_value)
+			historical_top_box_colour_value.append(total_top_box_colour_value)
+
+
+			###
+
+
+			##### look at the "bottom" box
+			total_bottom_box_colour_value = 0
+
+			# show where we are looking at:
 			#cv2.rectangle(frame,(scoreboard_left, scoreboard_top_1),(scoreboard_right, scoreboard_bottom_1),(0,255,0),1) # test: draw it on top of the video
 			# traverse every pixel in the scoreboard.
 			for pixel_y in range(scoreboard_left, scoreboard_right, 1):
 				for pixel_x in range(scoreboard_top_2, scoreboard_bottom_2, 1):
-					total_box_colour_value += frame[pixel_y][pixel_x] # indexes 0,1,2 = 'rgb'?
-					#total_box_colour_value += frame[pixel_y][pixel_x][1] 
-					#total_box_colour_value += frame[pixel_y][pixel_x][2]
+					total_bottom_box_colour_value += frame[pixel_y][pixel_x]#[0] # indexes 0,1,2 = 'rgb'?
+					#total_bottom_box_colour_value += frame[pixel_y][pixel_x][1] 
+					#total_bottom_box_colour_value += frame[pixel_y][pixel_x][2]
 			
-			#print (total_box_colour_value)
-			historical_box_colour_value.append(total_box_colour_value)'''
+			#print (total_bottom_box_colour_value)
+			historical_bottom_box_colour_value.append(total_bottom_box_colour_value)
 			
+
 
 
 
@@ -176,7 +209,7 @@ def capture_video():
 	# Closes all the frames
 	cv2.destroyAllWindows()
 
-	return historical_colour_value, historical_box_colour_value
+	return historical_colour_value, historical_top_box_colour_value, historical_bottom_box_colour_value
 
 ##### Video Data Processing #####
 
@@ -290,8 +323,6 @@ def get_serve_attempt_timestamps(low_points, high_points):
 	return serve_attempts
 
 def convert_list_to_timestamps(list_of_values):
-	
-
 	# maybe use this if it takes too long to use 'every' frame. But it probably shouldn't take that long though.
 	# scale the values to the appropriate time frame, given the fps of the video.
 	# note: how do you get the fps of a video file? from ffmpeg? or OpenCV?
@@ -342,6 +373,22 @@ def convert_list_to_timestamps(list_of_values):
 
 	return points_of_interest
 
+def combine_timestamps_from_different_sources(timestamps_from_different_sources):
+	all_points_of_interest = []
+	for list_of_timestamps in timestamps_from_different_sources:
+		for timestamp in list_of_timestamps:
+			all_points_of_interest.append(timestamp)
+
+	all_points_of_interest.sort() # using the built-in function
+	return all_points_of_interest
+
+
+def clean_up_noisy_timestamps(points_of_interest): 
+	''' Return a list of definitive start/end timestamps of each point.
+	The list will be called point_timestamps. 
+	It will be in the form of: list[list[start_time, end_time]]
+	'''
+	point_timestamps = []
 
 ##### Diagnostic/Testing #####
 
@@ -405,7 +452,7 @@ plot_graph([new_raw])
 
 # maybe do a 'profile' to see how fast things are going?
 print("Capturing video...")
-historical_colour_value, scoreboard_values = capture_video()
+historical_colour_value, scoreboard_first_row_values, scoreboard_second_row_values = capture_video()
 print("Done...")
 #print("historical_colour_value:", historical_colour_value)
 
@@ -425,20 +472,19 @@ acceleration
 
 
 
-points_of_interest = convert_list_to_timestamps(historical_colour_value)#scoreboard_values)
+start_point_candidates = convert_list_to_timestamps(historical_colour_value)#scoreboard_values)
 
-# show 'points_of_interest'
-for timestamp in points_of_interest:
-	print(timestamp)
-print("Points of interest", len(points_of_interest))
+end_point_candidates = combine_timestamps_from_different_sources(\
+	[convert_list_to_timestamps(scoreboard_first_row_values), \
+	convert_list_to_timestamps(scoreboard_second_row_values)])
 
+# show start_point_candidates
+print ("Possible Start Points:", start_point_candidates)
+print("Number of Possible Start Points:", len(start_point_candidates))
 
-
-
-
-point_start = []
-
-
+# show end_point_candidates
+print ("Possible End Points:", end_point_candidates)
+print("Number of Possible End Points:", len(end_point_candidates))
 
 
 
