@@ -385,13 +385,68 @@ def combine_timestamps_from_different_sources(timestamps_from_different_sources)
 	all_points_of_interest.sort() # using the built-in function
 	return all_points_of_interest
 
-
-def clean_up_noisy_timestamps(points_of_interest): 
+def clean_up_noisy_timestamps(start_point_candidates, end_point_candidates): 
 	''' Return a list of definitive start/end timestamps of each point.
 	The list will be called point_timestamps. 
 	It will be in the form of: list[list[start_time, end_time]]
 	'''
+	raw_timestamps = []
 	point_timestamps = []
+
+	# 1. put everything in a 2d list.
+	# note: refactor this later. wrote this when groggy (11/21/17)
+	for i in range(len(start_point_candidates)):
+		raw_timestamps.append([start_point_candidates[i], 's'])
+	for i in range(len(end_point_candidates)):
+		raw_timestamps.append([end_point_candidates[i], 'e'])
+
+	# sort all sublists in chronological order.
+	unordered_timestamps = []
+	for timestamp in raw_timestamps:
+		# remove duplicates
+		if timestamp[0] not in unordered_timestamps:
+			unordered_timestamps.append(timestamp[0])
+
+	for time in sorted(unordered_timestamps):
+		if time in start_point_candidates:
+			point_timestamps.append([time, 's'])
+		else:
+			point_timestamps.append([time, 'e'])
+
+	# 2. Traverse the list and remove timestamps if they don't pass each filter.
+	for i in range(len(point_timestamps)):
+		point_in_progress = False
+
+		if point_timestamps[i][1] == 'e' and not point_in_progress:
+			point_timestamps[i][1] = 'n/a' # not possible
+
+		elif point_timestamps[i][1] == 'e' and point_in_progress:
+			point_in_progress = False
+
+		elif point_timestamps[i][1] == 's' and not point_in_progress:
+			point_in_progress = True
+
+	print ("- - - - - - - - - - - - - - - -")
+	for point in point_timestamps:
+		print (point)
+	print ("- - - - - - - - - - - - - - - -")
+
+	# remove invalidated timestamps
+	fresh_timestamps = []
+	for i in range(len(point_timestamps)):
+		if point_timestamps[i][1] != 'n/a':
+			fresh_timestamps.append(point_timestamps[i])
+	point_timestamps = fresh_timestamps
+
+	for point in point_timestamps:
+		print (point)
+	
+	return "hi"#point_timestamps
+
+# 8:50pm, 11/21/17 - remove later
+print(clean_up_noisy_timestamps([13.0, 18.633333333333333, 37.4, 56.833333333333336, 82.4, 89.13333333333334, 95.3], \
+	[0.03333333333333333, 0.03333333333333333, 5.033333333333333, 10.166666666666666, 16.933333333333334, 21.933333333333334, 39.0, 60.93333333333333, 61.666666666666664, 65.93333333333334, 88.43333333333334]))
+
 
 ##### Diagnostic/Testing #####
 
@@ -427,3 +482,6 @@ start_point_candidates = convert_list_to_timestamps(historical_colour_value)#sco
 end_point_candidates = combine_timestamps_from_different_sources(\
 	[convert_list_to_timestamps(scoreboard_first_row_values), \
 	convert_list_to_timestamps(scoreboard_second_row_values)])
+
+print ("This is what will be edited:")
+print (clean_up_noisy_timestamps(start_point_candidates, end_point_candidates))
