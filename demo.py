@@ -37,22 +37,26 @@ VIDEO_CAPTURE_FRAMES_PER_SECOND = 5
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 ##### Video Editing #####
 
-def trim_video(start_frame, end_frame, source_file_path, new_file_path):
+def trim_video(start_time, end_time, new_file_path, source_file_path):
 	''' Trim video using ffmpeg.
 	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
 
 	Sample, where video_path = "full_match.mp4":
 	>>> trim_video(1000, 1100, "source_match.mp4", new_video_path)
 	'''	
+	video = VideoFileClip(source_file_path)
 
-	print("trimming", source_file_path, "from time", start_frame, "to time", end_frame, "and saving to", new_file_path)
-	ffmpeg_extract_subclip(new_file_path, start_frame, end_frame, targetname=source_file_path)
-	print("done")
+	# if the video ends before the point is finished:
+	if end_time == -1:
+		trimmed_video = video.subclip(start_time)
+	else:
+		trimmed_video = video.subclip(start_time, end_time)
+
+	trimmed_video.write_videofile(new_file_path, codec='libx264') # codec is a default?
  
 # note: is specifying the parameter type for only one function "inconsistent"?
 # note: is there any video quality downgrade/lost artifacts? 
@@ -73,15 +77,14 @@ def cut_video_in_points_of_interest(point_timestamps):
 	list_of_video_paths = []
 
 	for i in range(len(point_timestamps)):
-		if len(point_timestamps[i]) == 1: # video cuts before point ends
-			print ("video has ended before the point did")
-
-		else: # just a regular point
-			# use trim_video?
+		# video cuts before point ends
+		if len(point_timestamps[i]) == 1: 
+			trim_video(point_timestamps[i][0], -1, "auto_generated_files/newvid" + str(i) + ".mp4", video_path)
+		# just a regular point
+		else: 
 			trim_video(point_timestamps[i][0], point_timestamps[i][1], "auto_generated_files/newvid" + str(i) + ".mp4", video_path)
-			list_of_video_paths.append("auto_generated_files/newvid" + str(i) + ".mp4")
+		list_of_video_paths.append("auto_generated_files/newvid" + str(i) + ".mp4")
 	# concatenate all trimmed video files.
-	print (list_of_video_paths)
 	merge_video(list_of_video_paths, "edited_video.mp4")
 
 
@@ -91,8 +94,11 @@ def cut_video_in_points_of_interest(point_timestamps):
 - note that clean_up_noisy_timestamps() returns the provided parameter.
 '''
 
-# added margins of 2 for each point
-point_timestamps = [[13.0-2, 21.933333333333334], [37.4-2, 39.0+2], [56.833333333333336-2, 61.666666666666664+2], [82.4-2, 88.43333333333334+2], [95.3]]
+# the algorithm produces margins that are slightly off, so I manually added some for now
+point_timestamps = [[13.0, 21.933333333333334-2], [37.4-1, 39.0+2], [56.833333333333336, 61.666666666666664], [82.4, 88.43333333333334], [95.3]]
+# removed the floats -> kind of removed one pause for the last point
+#point_timestamps = [[12-2, 22], [34-2, 39+2], [54-2, 62+2], [82-2, 88+2], [95]]
+
 cut_video_in_points_of_interest(point_timestamps)
 
 ##### Video Capture #####
