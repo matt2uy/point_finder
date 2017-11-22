@@ -38,6 +38,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 ##### Video Editing #####
 
@@ -46,21 +47,53 @@ def trim_video(start_frame, end_frame, source_file_path, new_file_path):
 	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
 
 	Sample, where video_path = "full_match.mp4":
-	>>> trim_video(1000, 1100, video_path, "source_match.mp4")
+	>>> trim_video(1000, 1100, "source_match.mp4", new_video_path)
 	'''	
 
-	print("trimming", source_file_path, "from frame", start_frame, "to frame", end_frame, "and saving to", new_file_path)
+	print("trimming", source_file_path, "from time", start_frame, "to time", end_frame, "and saving to", new_file_path)
 	ffmpeg_extract_subclip(new_file_path, start_frame, end_frame, targetname=source_file_path)
 	print("done")
  
- # note: is specifying the parameter type for only one function "inconsistent"?
+# note: is specifying the parameter type for only one function "inconsistent"?
+# note: is there any video quality downgrade/lost artifacts? 
+
+def merge_video(list_of_video_paths, new_file_path):
+
+	list_of_videos = []
+	for video_path in list_of_video_paths:
+		list_of_videos.append(VideoFileClip(video_path))
+	# note: why do the trimmed/merged clips freeze sometimes? is it ffmpeg?
+	edited_video = concatenate_videoclips(list_of_videos)
+	edited_video.write_videofile(new_file_path)
 
 def cut_video_in_points_of_interest(point_timestamps):
 	'''
 	point_timestamps is in the form of: list[list[start_time, end_time]]
 	'''
-	...
-	# use trim_video?
+	list_of_video_paths = []
+
+	for i in range(len(point_timestamps)):
+		if len(point_timestamps[i]) == 1: # video cuts before point ends
+			print ("video has ended before the point did")
+
+		else: # just a regular point
+			# use trim_video?
+			trim_video(point_timestamps[i][0], point_timestamps[i][1], "auto_generated_files/newvid" + str(i) + ".mp4", video_path)
+			list_of_video_paths.append("auto_generated_files/newvid" + str(i) + ".mp4")
+	# concatenate all trimmed video files.
+	print (list_of_video_paths)
+	merge_video(list_of_video_paths, "edited_video.mp4")
+
+
+'''# 8:50pm, 11/21/17
+- remove later... once cut_video_in_points_of_interest is finished
+
+- note that clean_up_noisy_timestamps() returns the provided parameter.
+'''
+
+# added margins of 2 for each point
+point_timestamps = [[13.0-2, 21.933333333333334], [37.4-2, 39.0+2], [56.833333333333336-2, 61.666666666666664+2], [82.4-2, 88.43333333333334+2], [95.3]]
+cut_video_in_points_of_interest(point_timestamps)
 
 ##### Video Capture #####
 
@@ -413,19 +446,32 @@ def clean_up_noisy_timestamps(start_point_candidates, end_point_candidates):
 		else:
 			point_timestamps.append([time, 'e'])
 
+	'''Note (11/21/17): # do this later... 
+	1. After the scoreboard end_point detection is fixed
+	2. For now, work on the video editing section.
+	'''
 	# 2. Traverse the list and remove timestamps if they don't pass each filter.
+	''' Filters:
+	1. if point hasn't started and the timestamp is 'e', remove it.
+	2. if point hasn't started and the timestamp is 's', start the point
+	3. if the point has started and the timestamp is 'e' and the timestamp is at least 
+	'''
 	for i in range(len(point_timestamps)):
 		point_in_progress = False
 
 		if point_timestamps[i][1] == 'e' and not point_in_progress:
 			point_timestamps[i][1] = 'n/a' # not possible
 
-		elif point_timestamps[i][1] == 'e' and point_in_progress:
-			point_in_progress = False
-
 		elif point_timestamps[i][1] == 's' and not point_in_progress:
 			point_in_progress = True
 
+		elif point_timestamps[i][1] == 'e' and point_in_progress:
+			point_in_progress = False
+
+
+
+
+	# just a status update.. (to see what's going on before removing invalided timestamps)
 	print ("- - - - - - - - - - - - - - - -")
 	for point in point_timestamps:
 		print (point)
@@ -441,12 +487,20 @@ def clean_up_noisy_timestamps(start_point_candidates, end_point_candidates):
 	for point in point_timestamps:
 		print (point)
 	
-	return "hi"#point_timestamps
 
-# 8:50pm, 11/21/17 - remove later
+
+	# 3. Reformat point_timestamps into the form ...
+	#	 ... list[list[start_time, end_time]]
+
+	# note: this is a temporary message, until scoreboard timestamping is fixed.
+	return "hi"#point_timestamps 
+
+'''# 8:50pm, 11/21/17 - remove later...
+1. once timestamp detection is fixed
+2. when clean_up_noisy_timestamps is finished after that.
 print(clean_up_noisy_timestamps([13.0, 18.633333333333333, 37.4, 56.833333333333336, 82.4, 89.13333333333334, 95.3], \
 	[0.03333333333333333, 0.03333333333333333, 5.033333333333333, 10.166666666666666, 16.933333333333334, 21.933333333333334, 39.0, 60.93333333333333, 61.666666666666664, 65.93333333333334, 88.43333333333334]))
-
+'''
 
 ##### Diagnostic/Testing #####
 
