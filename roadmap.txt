@@ -1,3 +1,22 @@
+Roadmap:
+
+11/26/17
+- Attempt to compare scoreboard data with historical instances (at t-1, 2, 3, 4, 5)
+- if that works -> spit out point timestamps -> clean up noisy timestamps -> edit.
+
+12/5/17 
+- Test with a full challenger match
+
+12/19/17
+- Try smooth ball tracking
+- if that works -> test on non-challenger matches
+
+12/26/17 
+- regardless of smooth ball tracking -> try it out.
+
+
+How to determine when a point is finished:
+
 1. Use the "amount of motion"
 - before serve: the least?
 - point ends: 'deceleration'?
