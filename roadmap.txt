@@ -14,7 +14,15 @@ Roadmap:
 12/26/17 
 - regardless of smooth ball tracking -> try it out.
 
+12/29/17
+- check this: https://video.stackexchange.com/questions/14802/can-i-use-ffmpeg-in-a-commercial-product
+- some more docs: https://www.ffmpeg.org/documentation.html
+- video editor...
+	- automatic cropping (using the tennis court lines)
+	- "easy" editing (cuts, remove clips, etc...)
+- then make it an online video editor?
 
+A few "point finding" methods.
 How to determine when a point is finished:
 
 1. Use the "amount of motion"
@@ -26,9 +34,7 @@ How to determine when a point is finished:
 - model the tennis court?
 
 3. Sound
-- interference?
-- faster?
-- define a tennis ball bounce/racket sound
+- Does not work with the presence of a "crowd", because the "clapping" interfered with the sound of the ball-racquet interactions.
 
 4. Ball tracking
 - check for 'smooth path'
