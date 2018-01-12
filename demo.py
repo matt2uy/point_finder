@@ -290,7 +290,8 @@ def capture_video():
 				sys.stdout.write("\r%d%%" % i) # is there documentation for this? looks interesting.
 				sys.stdout.flush()
 				if i >= 99: # Add a newline when the progress text is complete.
-					print("")
+					sys.stdout.write("\r%d%%" % 100)
+					print ("")
 
 			
 			'''print (previous_top_pixel_matrix, "\n\n")
